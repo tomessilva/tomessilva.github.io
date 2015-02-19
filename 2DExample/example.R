@@ -81,7 +81,8 @@ pheatmap(t(norm.data),scale="row",show_rownames=FALSE) # plot heatmap with mean-
 
 # Hypothesis testing (Smyth's moderated t-test) with multiple comparison correction (Storey's q-value method)
 design.mtrx <- cbind(rep(1,length(treatment)),treatment) # define design matrix (Intercept + treatment)
-fit <- lmFit(t(norm.data),design=design.mtrx,method="robust",maxit=1024) # apply robust linear fit to each spot
+data.transposed <- t(norm.data) # put the data in the format expected by lmFit()
+fit <- lmFit(data.transposed,design=design.mtrx,method="robust",maxit=1024) # apply robust linear fit to each spot
 fit <- eBayes(fit,robust=TRUE) # compute moderated t-statistics
 qval <- (qvalue(fit$p.value[,2],pi0.method="bootstrap",gui=FALSE))$qvalues # calculate q-values
 fx.size <- apply(norm.data,2,function(d,f) cohen.d(d,f)$estimate,f=factor(treatment)) # calculate Cohen's d for each spot
@@ -89,10 +90,39 @@ sig.spots <- names(qval[qval < 0.1]) # assuming FDR < 10%
 n.sig.spots <- length(sig.spots) # number of significant spots
 spot.class <- as.numeric(colnames(norm.data) %in% sig.spots) # spot significance (binary variable)
 
-# Plot volcano plot
+# Diagnostic plots for hypothesis testing approach
+fit.residuals <- residuals(fit,data.transposed) # get per-model (i.e. per-spot) residuals
+
+# Check normality of model residues (studentized residuals method)
+fit.residuals.student <- as.vector(scale(fit.residuals)) # pool studentized residuals
+qqnorm(fit.residuals.student) # Q-Q plot of studentized residuals
+abline(0,1) # draw "x=y" line
+
+# Check normality of model residues (skewness/kurtosis method)
+set.seed(1) # set seed for random number generator to make results reproducible
+skew2 <- function(x) skewness(x,type=2) # define a skewness estimator that is unbiased under normality
+kurt2 <- function(x) kurtosis(x,type=2) # define an excess kurtosis estimator that is unbiased under normality
+normal.variates <- matrix(0,ncol=ncol(fit.residuals),nrow=nrow(fit.residuals)) # create empty matrix
+for (i in 1:nrow(fit.residuals)) normal.variates[i,] <- rnorm(ncol(fit.residuals),0,1) # generate normal data
+normal.skew <- apply(normal.variates,1,skew2) # calculate skewness of the distributions of residuals
+normal.kurt <- apply(normal.variates,1,kurt2) # calculate excess kurtosis of the distributions of residuals
+residual.skew <- apply(fit.residuals,1,skew2) # calculate skewness of the normal variates
+residual.kurt <- apply(fit.residuals,1,kurt2) # calculate excess kurtosis of the normal variates
+
+plot(NA,xlab="Skewness",ylab="Excess kurtosis",
+     xlim=c(min(c(normal.skew,residual.skew)),max(c(normal.skew,residual.skew))),
+     ylim=c(min(c(normal.kurt,residual.kurt)),max(c(normal.kurt,residual.kurt))))
+points(normal.skew,normal.kurt,pch=".",cex=5,col="grey") # plot results for normal variates
+abline(v=mean(normal.skew),col="grey") # draw line showing mean skewness for the normal variates
+abline(h=mean(normal.kurt),col="grey") # draw line showing mean excess kurtosis for the normal variates
+points(residual.skew,residual.kurt,pch=".",cex=5) # plot results for the residuals
+abline(v=mean(residual.skew)) # draw line showing mean skewness for the residuals
+abline(h=mean(residual.kurt)) # draw line showing mean excess kurtosis for the residuals
+
+# Volcano plot
 spot.colours <- 1 + spot.class + as.numeric(colnames(norm.data) %in% names(qval[qval < 0.05])) # calculate colors for each spot class
 plot(fx.size,-log(qval)/log(10),col=spot.colours,xlab="Effect size (Cohen's d)",ylab="Significance (-log10(q-value))",pch=15,cex=1) # volcano plot
-legend("bottomleft",c("FDR > 10%","FDR < 10%","FDR < 5%"),col=1:3,pch=15) # add a legend to the plot
+legend("bottomleft",c("FDR > 10%","FDR < 10%","FDR < 5%"),col=1:3,pch=15,main="Volcano plot") # add a legend to the plot
 
 # Export results of the univariate analysis
 univariate.results <- data.frame(spot.name=colnames(norm.data),p.value=fit$p.value[,2],
