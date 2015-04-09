@@ -57,6 +57,7 @@ meanSdPlot(t(norm.data)) # show how standard deviation of each spot depends on i
 # Principal Component Analysis
 results.pca <- prcomp(norm.data,scale=TRUE,retx=TRUE) # perform Principal Component Analysis with mean-centering and scaling
 plot(results.pca) # scree plot
+cumsum((results.pca$sdev)^2) / sum(results.pca$sdev^2) # cumulative explained variance (as a fraction of total variance)
 biplot(results.pca) # biplot of scores and loadings (not very clear)
 plot(results.pca$x[,1],results.pca$x[,2],col=1+treatment,xlab="PC1",ylab="PC2",pch=15,cex=2) # alternative scores plot
 legend("top",c("class 0","class 1"),col=1:2,pch=15,cex=2) # add a legend to the plot
@@ -84,7 +85,7 @@ design.mtrx <- cbind(rep(1,length(treatment)),treatment) # define design matrix 
 data.transposed <- t(norm.data) # put the data in the format expected by lmFit()
 fit <- lmFit(data.transposed,design=design.mtrx,method="robust",maxit=1024) # apply robust linear fit to each spot
 fit <- eBayes(fit,robust=TRUE) # compute moderated t-statistics
-qval <- (qvalue(fit$p.value[,2],pi0.method="bootstrap",gui=FALSE))$qvalues # calculate q-values
+qval <- (qvalue(fit$p.value[,2],pi0.method="bootstrap"))$qvalues # calculate q-values
 fx.size <- apply(norm.data,2,function(d,f) cohen.d(d,f)$estimate,f=factor(treatment)) # calculate Cohen's d for each spot
 sig.spots <- names(qval[qval < 0.1]) # assuming FDR < 10%
 n.sig.spots <- length(sig.spots) # number of significant spots
