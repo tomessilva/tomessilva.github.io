@@ -1,4 +1,4 @@
-Tomé S. Silva
+[Tomé S. Silva](https://orcid.org/0000-0002-9434-8686)
 ====================
 
 * R packages
