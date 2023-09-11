@@ -1,9 +1,10 @@
-[Tomé S. Silva](https://orcid.org/0000-0002-9434-8686)
+Tomé S. Silva 
 ====================
+[ [Github](https://tomessilva.github.io/) ] [ [Gitlab](https://gitlab.com/t.s.silva/)  ] [ [ORCID](https://orcid.org/0000-0002-9434-8686) ] [ [Scholar](https://scholar.google.com/citations?hl=en&user=Z1dFRJEAAAAJ&view_op=list_works&sortby=pubdate) ]
 
 * R packages
 
-  * [fort](https://tomessilva.github.io/fort): Fast orthogonal random transforms in R. Provides convenient access to fast structured random linear transforms implemented in C++ that are (at least approximately) orthogonal or semi-orthogonal, and often much faster than matrix multiplication. [Github repository](https://github.com/tomessilva/fort). [Package manual](https://tomessilva.github.io/manuals/fort_0.0.1.pdf).
+  * [fort](https://tomessilva.github.io/fort): Fast orthogonal random transforms in R. Provides convenient access to fast, structured, random linear transforms implemented in C++ that are (at least approximately) orthogonal or semi-orthogonal, and are often much faster than matrix multiplication. [Github repository](https://github.com/tomessilva/fort). [Package manual](https://tomessilva.github.io/manuals/fort_0.0.1.pdf).
 
 
 * Numerical software
